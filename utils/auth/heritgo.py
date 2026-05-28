@@ -30,3 +30,78 @@ def generate_token(user, token_type):
     )
 
     return token
+
+
+def validate(request):
+
+    header = get_authorization_header(request)
+
+    if not header:
+        return None
+    
+    tokens = header.split()
+
+    if len(tokens) != 2:
+        msg = {
+            "message": "헤더 형식이 올바르지 않습니다.",
+            "code": "JWT_403_INVALID_AUTH_HEADER",
+        }
+        raise AuthenticationFailed(msg)
+    
+    auth, token = tokens
+
+    if auth.lower() != b"bearer":
+        raise AuthenticationFailed("잘못된 인증 방식입니다.")
+    
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_AUTH["JWT_SECRET_KEY"],
+            algorithms=settings.JWT_AUTH["JWT_ALGORITHM"],
+            options={
+                "require": [
+                    "sub",
+                    "token_type",
+                    "iat",
+                    "exp",
+                ]
+            }
+        )
+
+    except jwt.exceptions.MissingRequiredClaimError:
+        msg = {
+            "message": "토큰에 필수 정보가 없습니다.",
+            "code": "JWT_403_MISSING_REQUIRED_CLAIM",
+        }
+        raise AuthenticationFailed(msg) from None
+
+    except jwt.ExpiredSignatureError:
+        msg = {
+            "message": "토큰이 만료되었습니다.",
+            "code": "JWT_401_EXPIRED_ACCESSTOKEN",
+        }
+        raise AuthenticationFailed(msg) from None
+    
+    except jwt.exceptions.InvalidTokenError:
+        msg = {
+            "message": "잘못된 토큰입니다.",
+            "code": "JWT_403_INVALID_ACCESSTOKEN",
+        }
+        raise AuthenticationFailed(msg) from None
+    
+    if payload["token_type"] != "access":
+        msg = {
+            "message": "Access Token 이 아닙니다.",
+            "code": "JWT_403_NOT_ACCESSTOKEN",
+        }
+        raise AuthenticationFailed(msg)
+    
+    try:
+        return int(payload["sub"])
+    except ValueError:
+        msg = {
+            "message": "토큰의 사용자 식별자가 올바르지 않습니다.",
+            "code": "JWT_403_INVALID_SUBJECT",
+        }
+        raise AuthenticationFailed(msg) from None
+    
