@@ -105,3 +105,42 @@ def validate(request):
         }
         raise AuthenticationFailed(msg) from None
     
+
+def refresh_token(request):
+
+    try:
+        refresh_token = request.data.get("refresh_token")
+        if not refresh_token:
+            msg = {
+                "message": "refresh_token 이 누락되었습니다.",
+                "code": "JWT_400_NOT_FOUND_TOKEN",
+            }
+            raise AuthenticationFailed(msg)
+
+        decoded = jwt.decode(
+            refresh_token,
+            settings.JWT_AUTH["JWT_SECRET_KEY"],
+            settings.JWT_AUTH["JWT_ALGORITHM"],
+        )
+
+        if decoded.get("token_type") != "refresh":
+            msg = {
+                "message": "토큰의 문제가 있습니다.",
+                "code": "JWT_403_INVALID_TOKEN_TYPE",
+            }
+            raise AuthenticationFailed(msg)
+
+        if decoded.get("exp") > int(datetime.now().timestamp()):
+            # 검증 로직
+            # 토큰 재발급 로직
+            pass
+        else:
+            msg = {
+                "message": "토큰이 만료되었습니다. 다시 로그인해주세요.",
+                "code": "JWT_403_EXSPIRED_TOKEN",
+            }
+            raise AuthenticationFailed(msg)
+            
+    except:
+        # 토큰 에러
+        pass
