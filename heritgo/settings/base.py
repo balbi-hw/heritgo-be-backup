@@ -36,7 +36,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # Local apps
-    "apps.users"
+    "apps.users",
     # Third-party
     "rest_framework",
     "corsheaders",
