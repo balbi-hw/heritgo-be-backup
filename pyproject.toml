@@ -47,4 +47,4 @@ indent-style = "space"
 line-ending = "auto"
 
 [tool.ruff.lint.per-file-ignores]
-"cinesync/settings/*.py" = ["F403", "F405"]
+"heritgo/settings/*.py" = ["F403", "F405"]
