@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  django-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Actions
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Python
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml" 
+      # uv 설치
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          # 캐시 저장
+          enable-cache: true
+
+      # Dependency
+      - name: Install dependencies
+        run: uv sync --locked
+
+      # Ruff
+      - name: Ruff check
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      # Django
+      - name: Django system check
+        run: uv run python manage.py check
