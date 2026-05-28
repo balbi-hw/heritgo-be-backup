@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # Local apps
+    "apps.users"
     # Third-party
     "rest_framework",
     "corsheaders",
@@ -133,7 +134,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.User"
 
 # TMDB API
 TMDB_ACCESS_TOKEN = os.getenv("TMDB_ACCESS_TOKEN")
