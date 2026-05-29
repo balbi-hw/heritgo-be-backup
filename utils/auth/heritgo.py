@@ -15,7 +15,7 @@ def generate_token(user, token_type):
         exp = now + timedelta(days=1)
     else:
         raise ValueError("Invalid token type")
-    
+
     payload = {
         "sub": str(user.pk),
         "typ": token_type,
@@ -38,7 +38,7 @@ def validate(request):
 
     if not header:
         return None
-    
+
     tokens = header.split()
 
     if len(tokens) != 2:
@@ -47,12 +47,12 @@ def validate(request):
             "code": "JWT_403_INVALID_AUTH_HEADER",
         }
         raise AuthenticationFailed(msg)
-    
+
     auth, token = tokens
 
     if auth.lower() != b"bearer":
         raise AuthenticationFailed("잘못된 인증 방식입니다.")
-    
+
     try:
         payload = jwt.decode(
             token,
@@ -65,7 +65,7 @@ def validate(request):
                     "iat",
                     "exp",
                 ]
-            }
+            },
         )
 
     except jwt.exceptions.MissingRequiredClaimError:
@@ -81,21 +81,21 @@ def validate(request):
             "code": "JWT_401_EXPIRED_ACCESSTOKEN",
         }
         raise AuthenticationFailed(msg) from None
-    
+
     except jwt.exceptions.InvalidTokenError:
         msg = {
             "message": "잘못된 토큰입니다.",
             "code": "JWT_403_INVALID_ACCESSTOKEN",
         }
         raise AuthenticationFailed(msg) from None
-    
+
     if payload["token_type"] != "access":
         msg = {
             "message": "Access Token 이 아닙니다.",
             "code": "JWT_403_NOT_ACCESSTOKEN",
         }
         raise AuthenticationFailed(msg)
-    
+
     try:
         return int(payload["sub"])
     except ValueError:
@@ -104,7 +104,7 @@ def validate(request):
             "code": "JWT_403_INVALID_SUBJECT",
         }
         raise AuthenticationFailed(msg) from None
-    
+
 
 def check_refresh_token(request):
 
@@ -129,10 +129,10 @@ def check_refresh_token(request):
                 "code": "JWT_403_INVALID_TOKEN_TYPE",
             }
             raise AuthenticationFailed(msg)
-            
-    except:
+
+    except jwt.InvalidTokenError:
         msg = {
             "message": "문제가 발생하였습니다. 다시 시도해주세요.",
             "code": " JWT_403_UNDETECTED_ERROR",
         }
-        raise AuthenticationFailed(msg) 
+        raise AuthenticationFailed(msg) from None
